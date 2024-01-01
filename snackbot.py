@@ -15,6 +15,14 @@ import send_snacc_message
 import download_file
 import unlock_drawer
 
+workspace_core_channel_id = "C03RXCV2FP0"
+
+def get_plurality(number):
+    if number == 1:
+        return "credit"
+    else:
+        return "credits"
+
 def load_json_template(file_path, **kwargs):
     with open("Messages/" + file_path, 'r') as file:
         template = file.read()
@@ -120,14 +128,15 @@ def snack_command(ack, body, client, command, respond):
         users_added_string = ""
         for user_id in user_ids:
             database.update_user_credits(user_id, credits_to_add)
+            new_credits = database.get_user_credits(user_id)
             users_added_string += f"<@{user_id}>\n"
             client.chat_postMessage(
                 channel=user_id,
-                text=f"You have been given {credits_to_add} credits by <@{body['user_id']}>. You now have {database.get_user_credits(user_id)} credits. You can use them to redeem snack in the break room with `/snack`."
+                text=f"You have been given {credits_to_add} {get_plurality(credits_to_add)} by <@{body['user_id']}>. You now have {new_credits} {get_plurality(new_credits)}. You can use them to redeem snack in the break room with `/snack`."
             )
 
         respond(
-            text=f"{credits_to_add} credits have been given to the following users:\n" + users_added_string
+            text=f"{credits_to_add} {get_plurality(credits_to_add)} given to the following users:\n" + users_added_string
         )
         
     else:
@@ -192,14 +201,12 @@ def unlock_cabinet(cabinet_number, body):
             "text": "You have 0 credits. Clean for 5 minutes, then send a photo to <@U05T96UN4NN> to earn a credit. See <https://ssi-wiki.stanford.edu/Snack_Bot|the wiki> for more info."
         })
         return
-    
-    print(database.use_credit(user_id))
-    
+        
     unlock_drawer.unlock_drawer(user_id, 1)
 
     requests.post(response_url, json={
         "replace_original": "true",
-        "text": f"Cabinet {cabinet_number} has been unlocked! You now have {credits - 1} credits left."
+        "text": f"Cabinet {cabinet_number} has been unlocked! You now have {credits - 1} {get_plurality(credits-1)} left."
     })
 
 @app.action("unlock_1")
@@ -228,8 +235,42 @@ def handle_save_credit(ack, body, client, logger):
 
     requests.post(response_url, json={
         "replace_original": "true",
-        "text": f"Credit saved. You have {credits} credits."
+        "text": f"Credit saved. You have {credits} {get_plurality(credits)}."
     })
+
+@app.event("reaction_added")
+def handle_reaction(ack, event, client):
+    ack()
+    print("Reaction added: ")
+
+    # The specific emoji and target channel
+    specific_emoji = "not-clean"  # Replace with your specific emoji
+    target_channel = "C7F3VVB1S"  # Replace with your target channel ID
+
+    # Check if the reaction is the one you're interested in
+    if event["reaction"] == specific_emoji:
+        # Get the message details
+        channel_id = event["item"]["channel"]
+        message_ts = event["item"]["ts"]
+
+        reacting_user = event["user"]
+
+        # Share the message to the target channel
+        if channel_id == "C06BLHGG5GX":
+            try:
+                result = client.chat_getPermalink(
+                    channel=channel_id,
+                    message_ts=message_ts
+                )
+                permalink = result.get("permalink")
+
+                # Post the message permalink to the target channel
+                client.chat_postMessage(
+                    channel=target_channel,
+                    text=f"<@{reacting_user}> reported a photo: {permalink}"
+                )
+            except Exception as e:
+                print(f"Error in sharing the message: {e}")    
     
 
 if __name__ == "__main__":
