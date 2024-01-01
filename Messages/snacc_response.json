@@ -1,0 +1,17 @@
+{
+    "text": "You're a snack! :smiling_face_with_smiling_eyes_and_hand_covering_mouth:",
+    "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "You're a snack, <@{user_id}>! :smiling_face_with_smiling_eyes_and_hand_covering_mouth:"
+            }
+        },
+        {
+            "type": "image",
+            "image_url": "{user_picture}",
+            "alt_text": "A Snacc"
+        }
+    ]
+}
