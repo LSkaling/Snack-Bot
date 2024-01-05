@@ -5,9 +5,8 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 import database
 import requests
-
+import threading
 import re
-
 import json
 
 import send_unlock_message
@@ -30,7 +29,6 @@ def load_json_template(file_path, **kwargs):
     
 def user_is_workspace_manager(client, user_id):
     #get list of members in #workspace-core
-    workspace_core_channel_id = "C03RXCV2FP0"
 
     response = client.conversations_members(channel=workspace_core_channel_id)
 
@@ -91,10 +89,9 @@ def snack_command(ack, body, client, command, respond):
 
     user_id = body['user_id']
 
-    workspace_core_channel_id = "C03RXCV2FP0"
-
     if user_is_workspace_manager(client, user_id):
-        unlock_drawer.unlock_all()
+        thread = threading.Thread(target=unlock_drawer.unlock_all, args=())
+        thread.start()
 
         respond(
             text="The cabinets have been unlocked. They will lock automatically in 5 minutes"
@@ -207,7 +204,8 @@ def unlock_cabinet(cabinet, body):
         })
         return
         
-    unlock_drawer.unlock_drawer(cabinet)
+    thread = threading.Thread(target=unlock_drawer.unlock_shelf, args=(cabinet,))
+    thread.start()
     database.use_credit(user_id)
 
     requests.post(response_url, json={
@@ -249,9 +247,8 @@ def handle_reaction(ack, event, client):
     ack()
     print("Reaction added: ")
 
-    # The specific emoji and target channel
-    specific_emoji = "not-clean"  # Replace with your specific emoji
-    target_channel = "C7F3VVB1S"  # Replace with your target channel ID
+    specific_emoji = "not-clean" 
+    target_channel = workspace_core_channel_id
 
     # Check if the reaction is the one you're interested in
     if event["reaction"] == specific_emoji:

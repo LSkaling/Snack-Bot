@@ -13,17 +13,17 @@ def send_unlock_ephemeral(user_id, credits, client, respond, preface = "", ): #u
                     "elements": [
                         {
                             "type": "button",
-                            "text": {"type": "plain_text", "text": "Unlock Cabinet 1"},
+                            "text": {"type": "plain_text", "text": "Unlock Top Cabinet"},
                             "action_id": "unlock_1"
                         },
                         {
                             "type": "button",
-                            "text": {"type": "plain_text", "text": "Unlock Cabinet 2"},
+                            "text": {"type": "plain_text", "text": "Unlock Midle Cabinet"},
                             "action_id": "unlock_2"
                         },
                         {
                             "type": "button",
-                            "text": {"type": "plain_text", "text": "Unlock Cabinet 3"},
+                            "text": {"type": "plain_text", "text": "Unlock Bottom Cabinet"},
                             "action_id": "unlock_3"
                         },
                         {
