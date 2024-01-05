@@ -8,7 +8,7 @@ def create_database():
     # Create table if it does not exist
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
+            user_id TEXT PRIMARY KEY,
             free_credits INTEGER,
             earned_credits INTEGER
         )
@@ -64,6 +64,59 @@ def update_user_credits(user_id, credits_to_add):
     ''', (credits_to_add, user_id))
     conn.commit()
     conn.close()
+
+def use_credit(user_id):
+    # Checks if user has free credits
+    conn = sqlite3.connect('user_credits.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT free_credits FROM users WHERE user_id = ?
+    ''', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        free_credits = result[0]
+        if free_credits > 0:
+            # If user has free credits, decrement them
+            conn = sqlite3.connect('user_credits.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                UPDATE users SET free_credits = free_credits - 1 
+                WHERE user_id = ?
+            ''', (user_id,))
+            conn.commit()
+            conn.close()
+            return True
+
+    conn = sqlite3.connect('user_credits.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT earned_credits FROM users WHERE user_id = ?
+    ''', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        earned_credits = result[0]
+        if earned_credits > 0:
+            # If user has earned credits, decrement them
+            conn = sqlite3.connect('user_credits.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                UPDATE users SET earned_credits = earned_credits - 1 
+                WHERE user_id = ?
+            ''', (user_id,))
+            conn.commit()
+            conn.close()
+            return True
+        
+    return False
+
 
 def refresh_free_credits():
     # Sets the free credits back to two for all users

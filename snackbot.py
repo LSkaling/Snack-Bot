@@ -73,6 +73,8 @@ def snack_command(ack, body, client, command, respond):
 
     user_id = body['user_id']
 
+    print(user_id)
+
     credits = database.get_user_credits(user_id)
 
     if credits > 0:
@@ -206,6 +208,7 @@ def unlock_cabinet(cabinet_number, body):
         return
         
     unlock_drawer.unlock_drawer(user_id, 1)
+    database.use_credit(user_id)
 
     requests.post(response_url, json={
         "replace_original": "true",
