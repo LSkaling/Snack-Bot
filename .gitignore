@@ -1,4 +1,6 @@
 .env
+<<<<<<< HEAD
 database.py
-cacert.pem
-.pem
+=======
+database.py
+>>>>>>> parent of 1609d10 (corrected gitignore)
