@@ -49,6 +49,9 @@ app = App(
     token=os.environ.get('SLACK_BOT_TOKEN')
 )
 
+# Create the database when the script is run
+database.create_database()
+
 @app.command("/snacc")
 def snacc_command(ack, body, client, command, respond):
 
