@@ -94,7 +94,7 @@ def snack_command(ack, body, client, command, respond):
     workspace_core_channel_id = "C03RXCV2FP0"
 
     if user_is_workspace_manager(client, user_id):
-        unlock_drawer.unlock_drawer(user_id, client, -1)
+        unlock_drawer.unlock_all()
 
         respond(
             text="The cabinets have been unlocked. They will lock automatically in 5 minutes"
@@ -194,7 +194,7 @@ def handle_file_upload(event, client, logger):
 
         send_unlock_message.send_unlock_message(user_id, credits, client, "Thanks for cleaning!")
 
-def unlock_cabinet(cabinet_number, body):
+def unlock_cabinet(cabinet, body):
     response_url = body["response_url"]
     user_id = body['user']['id']
     credits = database.get_user_credits(user_id)
@@ -207,29 +207,29 @@ def unlock_cabinet(cabinet_number, body):
         })
         return
         
-    unlock_drawer.unlock_drawer(user_id, 1)
+    unlock_drawer.unlock_drawer(cabinet)
     database.use_credit(user_id)
 
     requests.post(response_url, json={
         "replace_original": "true",
-        "text": f"Cabinet {cabinet_number} has been unlocked! You now have {credits - 1} {get_plurality(credits-1)} left."
+        "text": f"{cabinet.name.capitalize()} cabinet has been unlocked! You now have {credits - 1} {get_plurality(credits-1)} left."
     })
 
 @app.action("unlock_1")
 def handle_unlock_1(ack, body, client, logger):
     ack()
-    unlock_cabinet(1, body)
+    unlock_cabinet(unlock_drawer.Shelf.TOP, body)
     
 
 @app.action("unlock_2")
 def handle_unlock_2(ack, body, client, logger):
     ack()
-    unlock_cabinet(2, body)
+    unlock_cabinet(unlock_drawer.Shelf.MIDDLE, body)
 
 @app.action("unlock_3")
 def handle_unlock_3(ack, body, client, logger):
     ack()
-    unlock_cabinet(3, body)
+    unlock_cabinet(unlock_drawer.Shelf.BOTTOM, body)
 
 @app.action("save_credit")
 def handle_save_credit(ack, body, client, logger):
